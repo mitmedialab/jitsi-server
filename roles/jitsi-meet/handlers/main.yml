@@ -1,0 +1,8 @@
+- name: restart prosody
+  service: name=prosody state=restarted
+
+- name: restart jicofo
+  service: name=jicofo state=restarted
+
+- name: restart jitsi-videobridge
+  service: name=jitsi-videobridge state=restarted

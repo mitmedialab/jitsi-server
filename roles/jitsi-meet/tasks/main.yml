@@ -1,0 +1,120 @@
+---
+#
+# Bootstrapping
+#  - set up apt repository
+#  - install packages
+#  - remove default configs
+#  - open firewall ports
+#  - create keypairs
+- block:
+
+  # Apt repository
+  - name: Add jitsi apt key
+    apt_key:
+      state: present
+      data: "{{jitsi_apt_key}}"
+  
+  - name: Add jitsi source repo
+    apt_repository:
+      repo: "{{jitsi_apt_repo}}"
+      state: present
+    
+  - name: Install jitsi
+    apt: state=installed pkg={{item}}
+    with_items:
+      - "jitsi-meet"
+
+  # Remove default configs
+  - name: Remove default localhost configs
+    file: path=/etc/jitsi/meet/localhost-config.js state=absent
+    notify: restart jitsi-videobridge
+
+  - name: Remove default localhost Prosody config file
+    file: path=/var/lib/prosody/auth%2elocalhost state=absent
+    notify:
+     - restart jicofo
+     - restart prosody
+
+  # Open firewall ports
+  - name: Open videobridge ports
+    command: ufw allow 10000:20000/udp comment "Jitsi videobridge"
+    register: ufw_result
+    changed_when: "ufw_result.stdout.startswith('Rule')"
+
+  #  Create keypair
+  - name: Create prosody keypair
+    shell: >
+      yes '' | prosodyctl cert generate {{jitsi_domain}}
+    args:
+      creates: /var/lib/prosody/{{jitsi_domain}}.crt
+    notify:
+      - restart jicofo
+      - restart prosody
+
+  tags:
+   - jitsi-bootstrap
+   - jitsi
+
+#
+# Configuration
+#  - prosody
+#  - jicofo
+#  - videobridge
+#  - nginx
+#
+- block:
+  - name: Write prosody configuration
+    template: >
+      src=jitsi.cfg.lua
+      dest=/etc/prosody/conf.avail/jitsi.cfg.lua
+    notify: restart prosody
+
+  - name: Enable prosody configuration
+    file: >
+      src=/etc/prosody/conf.avail/jitsi.cfg.lua
+      dest=/etc/prosody/conf.d/jitsi.cfg.lua
+      state=link
+    notify: restart prosody
+
+  - name: Register prosody focus user
+    command: prosodyctl register {{jitsi_jicofo_user}} {{jitsi_auth_domain}} {{jitsi_jicofo_user_password}}
+    args:
+      # Prosody URL-escapes the directory name. 
+      creates: /var/lib/prosody/{{jitsi_auth_domain|replace('.', '%2e')}}/accounts/{{jitsi_jicofo_user}}.dat
+    notify:
+     - restart prosody
+     - restart jicofo
+
+  - name: Write jicofo configuration
+    template: >
+      src=jicofo_config
+      dest=/etc/jitsi/jicofo/config
+    notify: restart jicofo
+
+  - name: Write jitsi-videobridge configuration
+    template: >
+      src=videobridge_config
+      dest=/etc/jitsi/videobridge/config
+    notify: restart jitsi-videobridge
+
+  - name: Write jitsi nginx config
+    template: >
+      src=jitsi_nginx.conf
+      dest=/etc/nginx/sites-available/jitsi.conf
+    notify: restart nginx
+
+  - name: Write jisti config.js
+    template: >
+      src=config.js
+      dest=/etc/jitsi/meet/config.js
+
+  - name: Enable jitsi nginx config
+    file: >
+      src=/etc/nginx/sites-available/jitsi.conf
+      dest=/etc/nginx/sites-enabled/jitsi.conf
+      state=link
+    notify: restart nginx
+
+  tags:
+   - jitsi-config
+   - jitsi
