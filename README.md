@@ -1,11 +1,10 @@
-Jitsi Meet Ansible Configuration
-================================
+# Jitsi Meet Ansible Configuration
+
 
 Sets up a simple Jitsi Meet server with a vanilla configuration.  Uses
 letsencrypt for generating SSL certificates.
 
-Usage
-~~~~~
+## Usage
 
 1. Check out this repository with submodules.
 
@@ -13,8 +12,7 @@ Usage
 git clone https://github.com/unhangout/jitsi-server.git --recursive
 ```
 
-2. Create / update the file `vars/secrets.yml` (which should be managed by
-   ansible-vault) with the following variables:
+2. Create / update the file `vars/secrets.yml` (which should be managed by ansible-vault) with the following variables:
 
  - `main_user_name`: The main user account for provisioning the server. Recommended: "deploy"
  - `main_user_salt`: Random salt for hte user.
