@@ -7,11 +7,9 @@ letsencrypt for generating SSL certificates.
 ## Usage
 
 1. Check out this repository with submodules.
-
-```
-git clone https://github.com/unhangout/jitsi-server.git --recursive
-```
-
+  ```
+  git clone https://github.com/unhangout/jitsi-server.git --recursive
+  ```
 2. Create / update the file `vars/secrets.yml` (which should be managed by ansible-vault) with the following variables:
 
  - `main_user_name`: The main user account for provisioning the server. Recommended: "deploy"
@@ -25,25 +23,27 @@ git clone https://github.com/unhangout/jitsi-server.git --recursive
  - `jitsi_videobridge_component_secret`: A random string (say, 64 chars)
  - `jitsi_jicofo_component_secret`: Another random string
  - `jitsi_jicofo_user_password`: Another random string
-
 3. Map domain names to the server:
  - Main domain name (`jitsi_domain`).
  - Map each of the Subdomains to map as CNAME records to `jitsi_domain` (e.g. `auth.jitsi.example.com`):
-   - `auth.`
-   - `jitsi-videobridge.`
-   - `focus.`
-   - `conference.`
-
+     - `auth.`
+     - `jitsi-videobridge.`
+     - `focus.`
+     - `conference.`
 4. Once the domain names are all mapped correctly and DNS has propagated, provision the server with:
-```
-make firstrun
-```
 
+  ```
+  make firstrun
+  ```
+  
 5. For subsequent runs:
-```
-make
-```
-or to just make the jitsi configuration:
-```
-make app
-```
+
+  ```
+  make
+  ```
+  
+  or to just make the jitsi configuration:
+  
+  ```
+  make app
+  ```
