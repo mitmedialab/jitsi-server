@@ -1,3 +1,9 @@
+# Moved
+
+We are now maintaining this code here: https://gitlab.com/unhangout/jitsi-server. This repository on github will not receive further updates.
+
+--------
+
 # Jitsi Meet Ansible Configuration
 
 
